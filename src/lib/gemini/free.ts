@@ -26,7 +26,7 @@ export type { ImageGenerationResult };
  * @param attachedImagesBase64 添付画像のbase64データ配列（任意、最大10枚）
  * @param onError エラー発生時のコールバック
  * @param aspectRatio 画像のアスペクト比
- * @param modelOverride 既定モデル（gemini-3.1-flash-image-preview）を上書きする場合に指定
+ * @param modelOverride 既定モデル（gemini-3.1-flash-image）を上書きする場合に指定
  */
 export const generateFreeImageAsync = (
   prompt: string,

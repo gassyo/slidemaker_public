@@ -27,7 +27,7 @@ export interface PresentationStructurePage {
 }
 
 /**
- * プレゼンテーションのページ構成を提案する（gemini-2.5-flash）。
+ * プレゼンテーションのページ構成を提案する（gemini-3.6-flash）。
  * 分割モード（旧 PageSplitMode）は docs/DECISIONS.md の「追加決定: 分割モードは廃止」により
  * 廃止済み。構成提案は presentation_structure.md 1本に統一している。
  * TSV貼り付けのケースはクライアント側で完結する parseSpreadsheetToPages
@@ -95,7 +95,7 @@ export type { ImageGenerationResult };
  * @param onError 個別ページの生成失敗時に呼ばれる
  * @param referenceImageBase64s 参考画像のbase64データ配列（任意）
  * @param aspectRatio 画像のアスペクト比
- * @param modelOverride 既定モデル（gemini-3.1-flash-image-preview）を上書きする場合に指定
+ * @param modelOverride 既定モデル（gemini-3.1-flash-image）を上書きする場合に指定
  */
 export const generatePresentationPagesAsync = (
   pages: PresentationPagePromptInput[],

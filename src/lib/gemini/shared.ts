@@ -8,8 +8,8 @@ import type { GoogleGenAI } from '@google/genai';
 import type { TokenUsage } from '../../types';
 
 // Gemini 画像生成モデル（Nano Banana 2）。
-export const GEMINI_IMAGE_MODEL = 'gemini-3.1-flash-image-preview';
-export const GEMINI_TEXT_MODEL = 'gemini-2.5-flash';
+export const GEMINI_IMAGE_MODEL = 'gemini-3.1-flash-image';
+export const GEMINI_TEXT_MODEL = 'gemini-3.6-flash';
 
 // コスト定数 (USD per 1M tokens)。移植元の見積もり値をそのまま踏襲。
 const COST_INPUT_PER_1M = 2.0;
