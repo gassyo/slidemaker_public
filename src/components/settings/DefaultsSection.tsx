@@ -2,7 +2,7 @@
 // docs/REQUIREMENTS.md §5「per-user 設定」
 
 import { useEffect, useState } from 'react';
-import { ASPECT_RATIO_OPTIONS, type AspectRatio, type ImageModel } from '../../types';
+import { ASPECT_RATIO_OPTIONS, IMAGE_MODEL_OPTIONS, type AspectRatio, type ImageModel } from '../../types';
 import { Notice } from '../common/Notice';
 import type { UserSettings, UserSettingsPatch } from '../../hooks/useUserSettings';
 
@@ -58,8 +58,11 @@ export function DefaultsSection({ settings, onUpdate }: DefaultsSectionProps) {
         <div className="field">
           <label htmlFor="default-model">デフォルトモデル</label>
           <select id="default-model" value={model} onChange={(e) => setModel(e.target.value as ImageModel)}>
-            <option value="gpt-image-2">gpt-image-2（OpenAI）</option>
-            <option value="nanobanana2">nanobanana2（Gemini）</option>
+            {IMAGE_MODEL_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
           </select>
         </div>
         <div className="field">

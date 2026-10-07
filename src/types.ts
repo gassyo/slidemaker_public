@@ -18,9 +18,27 @@ export interface TokenUsage {
 // 画像生成モデル
 // ========================================
 
-// docs/REQUIREMENTS.md §6 (default_model) / §4.1 に対応する2モデルのみ。
+// docs/REQUIREMENTS.md §6 (default_model) / §4.1 に対応するモデル。
 // 移植元 ImageModelType にあった legacy な nanobanana(無印) / gptimage1.5 は含めない。
-export type ImageModel = 'nanobanana2' | 'gpt-image-2';
+// 既存の 'nanobanana2' / 'gpt-image-2' は保存済みの設定・履歴との互換のため残している。
+// OpenAI 系は値をそのまま API の model に渡す。Gemini 系の API モデル名は lib/gemini/shared.ts で解決する。
+export type ImageModel =
+  | 'nanobanana2.1'
+  | 'nanobanana2'
+  | 'gpt-image-2.5-sunburst'
+  | 'gpt-image-2.5-flare'
+  | 'gpt-image-2';
+
+export const IMAGE_MODEL_OPTIONS: { value: ImageModel; label: string }[] = [
+  { value: 'gpt-image-2.5-sunburst', label: 'gpt-image-2.5 Sunburst（OpenAI・編集精度重視）' },
+  { value: 'gpt-image-2.5-flare', label: 'gpt-image-2.5 Flare（OpenAI・高速）' },
+  { value: 'gpt-image-2', label: 'gpt-image-2（OpenAI）' },
+  { value: 'nanobanana2.1', label: 'Nano Banana 2.1（Gemini）' },
+  { value: 'nanobanana2', label: 'Nano Banana 2（Gemini）' },
+];
+
+export const isGeminiImageModel = (model: ImageModel): boolean =>
+  model === 'nanobanana2' || model === 'nanobanana2.1';
 
 // ========================================
 // アスペクト比

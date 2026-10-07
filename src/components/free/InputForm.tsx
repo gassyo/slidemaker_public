@@ -1,6 +1,6 @@
 // SlideMaker Public: F2 入力フォーム（docs/REQUIREMENTS.md §6）
 
-import { ASPECT_RATIO_OPTIONS, type AspectRatio, type ImageModel } from '../../types';
+import { ASPECT_RATIO_OPTIONS, IMAGE_MODEL_OPTIONS, type AspectRatio, type ImageModel } from '../../types';
 import { AttachmentPicker } from './AttachmentPicker';
 import type { AttachmentItem } from './fileUtils';
 
@@ -95,8 +95,11 @@ export function InputForm({
         <div className="field">
           <label htmlFor="free-model">モデル</label>
           <select id="free-model" value={model} onChange={(e) => onModelChange(e.target.value as ImageModel)}>
-            <option value="gpt-image-2">gpt-image-2（OpenAI）</option>
-            <option value="nanobanana2">nanobanana2（Gemini）</option>
+            {IMAGE_MODEL_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
           </select>
         </div>
 

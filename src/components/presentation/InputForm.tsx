@@ -1,6 +1,6 @@
 // F1: 入力フォーム（元テキスト・ページ数・デザイン要望・参考画像・アスペクト比・モデル）
 
-import { ASPECT_RATIO_OPTIONS, type AspectRatio, type ImageModel } from '../../types';
+import { ASPECT_RATIO_OPTIONS, IMAGE_MODEL_OPTIONS, type AspectRatio, type ImageModel } from '../../types';
 import type { ReferenceImageRecord } from '../../hooks/useReferenceImages';
 import { DesignTemplatePicker } from './DesignTemplatePicker';
 import { ReferenceImagePicker } from './ReferenceImagePicker';
@@ -137,8 +137,11 @@ export function InputForm({
         <div className="field">
           <label htmlFor="model">画像生成モデル</label>
           <select id="model" value={model} onChange={(e) => onModelChange(e.target.value as ImageModel)}>
-            <option value="gpt-image-2">gpt-image-2（OpenAI）</option>
-            <option value="nanobanana2">nanobanana2（Gemini）</option>
+            {IMAGE_MODEL_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
           </select>
         </div>
       </div>

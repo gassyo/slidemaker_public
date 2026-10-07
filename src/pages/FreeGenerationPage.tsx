@@ -5,7 +5,8 @@ import { buildFreeMergedPrompt } from '../lib/gemini/buildPrompt';
 import { generateFreeImageAsync, type ImageGenerationResult } from '../lib/gemini/free';
 import { generateGptImagesAsync, type GptImageResult } from '../lib/openai/client';
 import { uploadGeneratedImages } from '../lib/storage/generatedImages';
-import type { AspectRatio, GeneratedImage, ImageModel } from '../types';
+import { isGeminiImageModel, type AspectRatio, type GeneratedImage, type ImageModel } from '../types';
+import { geminiImageModelId } from '../lib/gemini/shared';
 import { useUserSettings } from '../hooks/useUserSettings';
 import { Notice } from '../components/common/Notice';
 import { InputForm } from '../components/free/InputForm';
@@ -20,7 +21,7 @@ import {
 
 const MAX_ATTACHMENTS = 10;
 
-const maxCountForModel = (model: ImageModel): number => (model === 'nanobanana2' ? 6 : 4);
+const maxCountForModel = (model: ImageModel): number => (isGeminiImageModel(model) ? 6 : 4);
 
 function FreeGenerationPage() {
   const { settings } = useUserSettings();
@@ -175,7 +176,7 @@ function FreeGenerationPage() {
     };
 
     try {
-      if (model === 'nanobanana2') {
+      if (isGeminiImageModel(model)) {
         generateFreeImageAsync(
           mergedPrompt,
           count,
@@ -183,7 +184,8 @@ function FreeGenerationPage() {
           onAllCompleted,
           attachedBase64.length > 0 ? attachedBase64 : undefined,
           onError,
-          aspectRatio
+          aspectRatio,
+          geminiImageModelId(model)
         );
       } else {
         generateGptImagesAsync(
@@ -194,7 +196,7 @@ function FreeGenerationPage() {
           onError,
           aspectRatio,
           attachedBase64.length > 0 ? attachedBase64 : undefined,
-          {}
+          { model }
         );
       }
     } catch (err) {

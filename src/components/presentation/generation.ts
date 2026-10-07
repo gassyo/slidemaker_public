@@ -10,12 +10,12 @@
 //   簡易リトライ（最大2回・固定バックオフ）をローカルに実装している。本来は
 //   generateGptImageOnceWithRetry 相当を src/lib/openai/client.ts から export してもらうのが望ましい。
 
-import type { AspectRatio, ImageModel } from '../../types';
+import { isGeminiImageModel, type AspectRatio, type ImageModel } from '../../types';
 import { buildPresentationPagePrompt } from '../../lib/gemini/buildPrompt';
 import { generatePresentationPagesAsync, type ImageGenerationResult } from '../../lib/gemini/presentation';
 import { getAiClient } from '../../lib/gemini/client';
 import {
-  GEMINI_IMAGE_MODEL,
+  geminiImageModelId,
   generateImageWithRetry,
   type GeminiContentInputPart,
 } from '../../lib/gemini/shared';
@@ -27,7 +27,8 @@ const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout
 const generateOneGptPage = async (
   prompt: string,
   referenceImagesBase64: string[],
-  aspectRatio: AspectRatio
+  aspectRatio: AspectRatio,
+  model: ImageModel
 ): Promise<string> => {
   const maxAttempts = 2;
   let lastError: Error = new Error('画像生成に失敗しました');
@@ -35,8 +36,8 @@ const generateOneGptPage = async (
     try {
       const result =
         referenceImagesBase64.length > 0
-          ? await generateGptImageWithReferences(prompt, referenceImagesBase64, aspectRatio, {})
-          : await generateGptImage(prompt, aspectRatio, {});
+          ? await generateGptImageWithReferences(prompt, referenceImagesBase64, aspectRatio, { model })
+          : await generateGptImage(prompt, aspectRatio, { model });
       return result.data;
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));
@@ -59,7 +60,7 @@ export const generateAllPages = async (
   model: ImageModel,
   onPageResult: (index: number, result: PageImageState) => void
 ): Promise<void> => {
-  if (model === 'nanobanana2') {
+  if (isGeminiImageModel(model)) {
     await new Promise<void>((resolve) => {
       generatePresentationPagesAsync(
         pages,
@@ -72,7 +73,8 @@ export const generateAllPages = async (
           // index が取得できないため、ここでは何もしない（sweepStalledPages で回収する）。
         },
         referenceImagesBase64,
-        aspectRatio
+        aspectRatio,
+        geminiImageModelId(model)
       );
     });
     return;
@@ -83,7 +85,7 @@ export const generateAllPages = async (
     pages.map(async (_, index) => {
       try {
         const prompt = buildPresentationPagePrompt(pages, index, designRequests, hasReferenceImages);
-        const base64Image = await generateOneGptPage(prompt, referenceImagesBase64, aspectRatio);
+        const base64Image = await generateOneGptPage(prompt, referenceImagesBase64, aspectRatio, model);
         onPageResult(index, { status: 'done', base64Image });
       } catch (err) {
         onPageResult(index, {
@@ -119,14 +121,14 @@ export const regenerateSinglePage = async (
   const prompt = buildPresentationPagePrompt(pages, index, designRequests, hasReferenceImages);
 
   try {
-    if (model === 'nanobanana2') {
+    if (isGeminiImageModel(model)) {
       const ai = getAiClient();
       const parts: GeminiContentInputPart[] = [{ text: prompt }];
       referenceImagesBase64.forEach((data) => parts.push({ inlineData: { mimeType: 'image/png', data } }));
 
       const result = await generateImageWithRetry(
         ai,
-        GEMINI_IMAGE_MODEL,
+        geminiImageModelId(model),
         parts,
         { imageConfig: { aspectRatio, imageSize: '1K' } },
         prompt
@@ -134,7 +136,7 @@ export const regenerateSinglePage = async (
       return { status: 'done', base64Image: result.data };
     }
 
-    const base64Image = await generateOneGptPage(prompt, referenceImagesBase64, aspectRatio);
+    const base64Image = await generateOneGptPage(prompt, referenceImagesBase64, aspectRatio, model);
     return { status: 'done', base64Image };
   } catch (err) {
     return { status: 'error', error: err instanceof Error ? err.message : '画像生成に失敗しました' };
