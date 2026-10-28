@@ -140,6 +140,24 @@ export const uploadGeneratedImages = async (
 };
 
 /**
+ * 生成履歴1件を削除する。Storage の画像本体を先に消し、成功した場合のみ generations の行を消す
+ * （画像削除に失敗したときに行だけ消えて、画像が孤児ファイルとして残るのを防ぐため）。
+ */
+export const deleteGeneration = async (generationId: string, storagePaths: string[]): Promise<void> => {
+  if (storagePaths.length > 0) {
+    const { error: removeError } = await supabase.storage.from(GENERATED_IMAGES_BUCKET).remove(storagePaths);
+    if (removeError) {
+      throw new Error(`生成画像の削除に失敗しました: ${removeError.message}`);
+    }
+  }
+
+  const { error: deleteError } = await supabase.from(GENERATIONS_TABLE).delete().eq('id', generationId);
+  if (deleteError) {
+    throw new Error(`生成履歴の削除に失敗しました: ${deleteError.message}`);
+  }
+};
+
+/**
  * 生成画像の署名付きURL（短寿命）を取得する。履歴画面からの再表示・再ダウンロード用。
  */
 export const getSignedUrlForGeneratedImage = async (

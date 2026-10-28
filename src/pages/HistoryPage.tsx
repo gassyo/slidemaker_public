@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Notice } from '../components/common/Notice';
 import { GenerationImageGrid } from '../components/history/GenerationImageGrid';
-import type { GeneratedImageMeta } from '../lib/storage/generatedImages';
+import { deleteGeneration, type GeneratedImageMeta } from '../lib/storage/generatedImages';
 
 interface GenerationRow {
   id: string;
@@ -35,6 +35,7 @@ function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     if (!user) {
@@ -62,12 +63,34 @@ function HistoryPage() {
     void reload();
   }, [reload]);
 
+  const handleDelete = async (row: GenerationRow) => {
+    const ok = window.confirm(
+      `この履歴（${formatDateTime(row.created_at)}・${row.images.length}枚）を削除しますか？\n保存されている画像も削除され、元に戻せません。`
+    );
+    if (!ok) return;
+
+    setDeletingId(row.id);
+    setError(null);
+    try {
+      await deleteGeneration(
+        row.id,
+        row.images.map((img) => img.storage_path)
+      );
+      setRows((prev) => prev.filter((r) => r.id !== row.id));
+      if (selectedId === row.id) setSelectedId(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '履歴の削除に失敗しました');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const selectedRow = rows.find((row) => row.id === selectedId) ?? null;
 
   return (
     <main className="container-wide">
       <h1 className="section-title">履歴</h1>
-      <p className="section-desc">これまでに生成した画像の一覧です。クリックすると詳細を表示します。</p>
+      <p className="section-desc">これまでに生成した画像の一覧です。クリックすると詳細を表示します。不要な履歴は「削除」で消せます。</p>
 
       {error && <Notice kind="error" message={error} />}
 
@@ -86,8 +109,21 @@ function HistoryPage() {
               <div>
                 <strong>{FEATURE_LABEL[row.feature]}</strong> — {truncate(row.input_text)}
               </div>
-              <div className="history-row__meta">
-                {formatDateTime(row.created_at)} ・ {row.images.length}枚
+              <div className="history-row__actions">
+                <div className="history-row__meta">
+                  {formatDateTime(row.created_at)} ・ {row.images.length}枚
+                </div>
+                <button
+                  type="button"
+                  className="btn-sm btn-danger"
+                  disabled={deletingId !== null}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void handleDelete(row);
+                  }}
+                >
+                  {deletingId === row.id ? '削除中...' : '削除'}
+                </button>
               </div>
             </div>
           ))}

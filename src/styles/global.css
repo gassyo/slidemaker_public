@@ -406,6 +406,13 @@ button:disabled {
   color: #777;
 }
 
+.history-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
 .mask-value {
   font-family: monospace;
   letter-spacing: 1px;
