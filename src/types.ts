@@ -25,11 +25,15 @@ export interface TokenUsage {
 export type ImageModel =
   | 'nanobanana2.1'
   | 'nanobanana2'
+  | 'gpt-image-2.6-sunburst'
+  | 'gpt-image-2.6-flare'
   | 'gpt-image-2.5-sunburst'
   | 'gpt-image-2.5-flare'
   | 'gpt-image-2';
 
 export const IMAGE_MODEL_OPTIONS: { value: ImageModel; label: string }[] = [
+  { value: 'gpt-image-2.6-sunburst', label: 'gpt-image-2.6 Sunburst（OpenAI・精密な描写/編集向け）' },
+  { value: 'gpt-image-2.6-flare', label: 'gpt-image-2.6 Flare（OpenAI・高速）' },
   { value: 'gpt-image-2.5-sunburst', label: 'gpt-image-2.5 Sunburst（OpenAI・編集精度重視）' },
   { value: 'gpt-image-2.5-flare', label: 'gpt-image-2.5 Flare（OpenAI・高速）' },
   { value: 'gpt-image-2', label: 'gpt-image-2（OpenAI）' },
