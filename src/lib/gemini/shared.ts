@@ -11,10 +11,15 @@ import type { ImageModel, TokenUsage } from '../../types';
 export const GEMINI_IMAGE_MODEL = 'gemini-3.1-flash-image';
 // Gemini 画像生成モデル（Nano Banana 2.1）。
 export const GEMINI_IMAGE_MODEL_2_1 = 'gemini-nano-banana-2.1';
+// Gemini 画像生成モデル（Nano Banana Pro）。
+export const GEMINI_IMAGE_MODEL_PRO = 'gemini-3-pro-image';
 
 /** アプリ上のモデル選択値を Gemini API のモデル名に変換する。 */
-export const geminiImageModelId = (model: ImageModel): string =>
-  model === 'nanobanana2.1' ? GEMINI_IMAGE_MODEL_2_1 : GEMINI_IMAGE_MODEL;
+export const geminiImageModelId = (model: ImageModel): string => {
+  if (model === 'nanobanana2.1') return GEMINI_IMAGE_MODEL_2_1;
+  if (model === 'nanobanana-pro') return GEMINI_IMAGE_MODEL_PRO;
+  return GEMINI_IMAGE_MODEL;
+};
 export const GEMINI_TEXT_MODEL = 'gemini-3.6-flash';
 
 // コスト定数 (USD per 1M tokens)。移植元の見積もり値をそのまま踏襲。
