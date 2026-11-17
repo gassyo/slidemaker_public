@@ -6,6 +6,7 @@ import type { AspectRatio, ImageModel } from '../types';
 import { detectSpreadsheetPageCount, parseSpreadsheetToPages } from '../lib/ppt/parseTsv';
 import { suggestPresentationStructure } from '../lib/gemini/presentation';
 import { generateMultiPagePowerPoint, generateSlideImagePowerPoint } from '../lib/ppt/generate';
+import { generateImagesPdf } from '../lib/pdf/generate';
 import { uploadGeneratedImages } from '../lib/storage/generatedImages';
 import { useUserSettings } from '../hooks/useUserSettings';
 import { useReferenceImages, downloadReferenceImageAsBase64 } from '../hooks/useReferenceImages';
@@ -204,6 +205,20 @@ function PresentationPage() {
     }
   };
 
+  const handleDownloadPdf = async () => {
+    if (!allDone) return;
+    setDownloadBusy(true);
+    setNotice(null);
+    try {
+      const images = imageStates.map((state) => state.base64Image as string);
+      await generateImagesPdf(images, pages[0]?.title);
+    } catch (err) {
+      setNotice({ kind: 'error', message: err instanceof Error ? err.message : 'PDFの生成に失敗しました' });
+    } finally {
+      setDownloadBusy(false);
+    }
+  };
+
   const handleDownloadTemplate = async () => {
     if (!allDone) return;
     setDownloadBusy(true);
@@ -282,6 +297,7 @@ function PresentationPage() {
             busy={downloadBusy}
             onDownloadFullImage={() => void handleDownloadFullImage()}
             onDownloadTemplate={() => void handleDownloadTemplate()}
+            onDownloadPdf={() => void handleDownloadPdf()}
           />
         </>
       )}

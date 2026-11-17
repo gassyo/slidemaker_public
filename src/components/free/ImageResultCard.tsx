@@ -1,7 +1,8 @@
-// SlideMaker Public: F2 生成結果1枚分 — PNG / 単スライドPPT ダウンロード
+// SlideMaker Public: F2 生成結果1枚分 — PNG / 単スライドPPT / PDF ダウンロード
 
 import { useState } from 'react';
 import { generateSlideImagePowerPoint } from '../../lib/ppt/generate';
+import { generateImagesPdf } from '../../lib/pdf/generate';
 import type { GeneratedImage } from '../../types';
 import { Notice } from '../common/Notice';
 
@@ -34,6 +35,18 @@ export function ImageResultCard({ image, index, cropTopPx, cropBottomPx }: Image
     }
   };
 
+  const handlePdfDownload = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await generateImagesPdf([image.base64Data], image.fullPrompt);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'PDFの生成に失敗しました');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="image-card">
       <img src={image.url} alt={`生成画像 ${index + 1}`} />
@@ -43,6 +56,9 @@ export function ImageResultCard({ image, index, cropTopPx, cropBottomPx }: Image
         </a>
         <button type="button" className="btn-sm" onClick={() => void handlePptDownload()} disabled={busy}>
           {busy ? '生成中...' : '単スライドPPTダウンロード'}
+        </button>
+        <button type="button" className="btn-sm" onClick={() => void handlePdfDownload()} disabled={busy}>
+          PDFダウンロード
         </button>
       </div>
       {error && <Notice kind="error" message={error} />}

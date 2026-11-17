@@ -73,7 +73,10 @@ const buildShortTimestamp = (now: Date = new Date()): string => {
   return `${yy}${mm}${dd}_${hh}${mi}${ss}`;
 };
 
-export const buildPptFileName = (descriptor: string, prompt?: string): string => {
+export const buildPptFileName = (descriptor: string, prompt?: string): string =>
+  buildDownloadFileName(descriptor, prompt, 'pptx');
+
+export const buildDownloadFileName = (descriptor: string, prompt: string | undefined, extension: string): string => {
   const safeDescriptor = sanitizeAsciiSegment(descriptor) || 'slides';
   const timestamp = buildShortTimestamp();
 
@@ -82,8 +85,8 @@ export const buildPptFileName = (descriptor: string, prompt?: string): string =>
   const promptSegment = titleSegment || sanitizePromptForFileName(prompt);
 
   const stem = promptSegment ? `${promptSegment}_${safeDescriptor}_${timestamp}` : `${safeDescriptor}_${timestamp}`;
-  const trimmed = stem.slice(0, MAX_PPT_FILE_NAME_LENGTH - '.pptx'.length).replace(/_+$/, '');
-  return `${trimmed}.pptx`;
+  const trimmed = stem.slice(0, MAX_PPT_FILE_NAME_LENGTH - `.${extension}`.length).replace(/_+$/, '');
+  return `${trimmed}.${extension}`;
 };
 
 // ========================================

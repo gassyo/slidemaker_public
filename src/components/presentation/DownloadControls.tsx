@@ -1,4 +1,4 @@
-// F1: .pptx ダウンロード（FULL_IMAGE / SLIDE_IMAGE）
+// F1: .pptx ダウンロード（FULL_IMAGE / SLIDE_IMAGE）と PDF ダウンロード
 // 全ページの画像生成が成功していない限りダウンロードは行わせない（部分書き出しによる
 // 「一部だけ画像なしのPPTが出力される」混乱を避けるための仕様判断）。
 
@@ -9,12 +9,19 @@ interface DownloadControlsProps {
   busy: boolean;
   onDownloadFullImage: () => void;
   onDownloadTemplate: () => void;
+  onDownloadPdf: () => void;
 }
 
-export function DownloadControls({ allDone, busy, onDownloadFullImage, onDownloadTemplate }: DownloadControlsProps) {
+export function DownloadControls({
+  allDone,
+  busy,
+  onDownloadFullImage,
+  onDownloadTemplate,
+  onDownloadPdf,
+}: DownloadControlsProps) {
   return (
     <section className="card">
-      <h2>PPT ダウンロード</h2>
+      <h2>PPT / PDF ダウンロード</h2>
 
       {!allDone && (
         <Notice kind="info" message="未生成のページがあります。すべてのページの画像生成後にダウンロードできます。" />
@@ -26,6 +33,9 @@ export function DownloadControls({ allDone, busy, onDownloadFullImage, onDownloa
         </button>
         <button type="button" onClick={onDownloadTemplate} disabled={!allDone || busy}>
           PPTダウンロード（テンプレート差し込み）
+        </button>
+        <button type="button" onClick={onDownloadPdf} disabled={!allDone || busy}>
+          PDFダウンロード
         </button>
       </div>
     </section>

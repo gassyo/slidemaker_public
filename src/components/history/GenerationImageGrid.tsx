@@ -4,12 +4,29 @@
 import { useEffect, useState } from 'react';
 import { getSignedUrlForGeneratedImage } from '../../lib/storage/generatedImages';
 import type { GeneratedImageMeta } from '../../lib/storage/generatedImages';
+import { generateImagesPdf } from '../../lib/pdf/generate';
 import { Notice } from '../common/Notice';
 
 interface GenerationImageGridProps {
   generationId: string;
   images: GeneratedImageMeta[];
 }
+
+// 署名付きURLの画像を取得して、data: プレフィックスなしの base64 にする（PDF 生成用）。
+const fetchImageAsBase64 = async (url: string): Promise<string> => {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('画像の取得に失敗しました');
+  const blob = await response.blob();
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = String(reader.result);
+      resolve(result.slice(result.indexOf(',') + 1));
+    };
+    reader.onerror = () => reject(new Error('画像の読み込みに失敗しました'));
+    reader.readAsDataURL(blob);
+  });
+};
 
 interface ResolvedImage {
   meta: GeneratedImageMeta;
@@ -20,6 +37,21 @@ export function GenerationImageGrid({ generationId, images }: GenerationImageGri
   const [resolved, setResolved] = useState<ResolvedImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+
+  const handlePdf = async (targets: ResolvedImage[]) => {
+    setPdfBusy(true);
+    setPdfError(null);
+    try {
+      const base64s = await Promise.all(targets.map(({ url }) => fetchImageAsBase64(url)));
+      await generateImagesPdf(base64s);
+    } catch (err) {
+      setPdfError(err instanceof Error ? err.message : 'PDFの生成に失敗しました');
+    } finally {
+      setPdfBusy(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -48,17 +80,30 @@ export function GenerationImageGrid({ generationId, images }: GenerationImageGri
   if (error) return <Notice kind="error" message={error} />;
 
   return (
-    <div className="image-grid">
-      {resolved.map(({ meta, url }, index) => (
-        <div className="image-card" key={meta.storage_path}>
-          <img src={url} alt={`生成画像 ${index + 1}`} />
-          <div className="btn-row">
-            <a className="btn btn-sm" href={url} download={`${generationId}_${index + 1}.png`}>
-              ダウンロード
-            </a>
-          </div>
+    <>
+      {pdfError && <Notice kind="error" message={pdfError} />}
+      {resolved.length > 1 && (
+        <div className="btn-row">
+          <button type="button" className="btn-sm" disabled={pdfBusy} onClick={() => void handlePdf(resolved)}>
+            {pdfBusy ? 'PDF生成中...' : `全${resolved.length}枚をまとめてPDFダウンロード`}
+          </button>
         </div>
-      ))}
-    </div>
+      )}
+      <div className="image-grid">
+        {resolved.map((item, index) => (
+          <div className="image-card" key={item.meta.storage_path}>
+            <img src={item.url} alt={`生成画像 ${index + 1}`} />
+            <div className="btn-row">
+              <a className="btn btn-sm" href={item.url} download={`${generationId}_${index + 1}.png`}>
+                ダウンロード
+              </a>
+              <button type="button" className="btn-sm" disabled={pdfBusy} onClick={() => void handlePdf([item])}>
+                PDFダウンロード
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
